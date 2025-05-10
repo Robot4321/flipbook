@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ZenAura Luxury Flipbook</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      overflow: hidden;
+    }
+    #flipbook {
+      width: 90vw;
+      height: 90vh;
+      margin: 5vh auto;
+    }
+    .page {
+      background: white;
+      border: 1px solid #ddd;
+      background-size: cover;
+      background-position: center;
+    }
+  </style>
+</head>
+<body>
+
+<div id="flipbook"></div>
+
+<script>
+!function(_, onLoad){
+  let jq = document.createElement("script");
+  jq.src = "https://code.jquery.com/jquery-3.6.0.min.js";
+  jq.onload = onLoad;
+  document.head.appendChild(jq);
+}(0, function(){
+
+  let turn = document.createElement("script");
+  turn.src = "https://cdn.jsdelivr.net/gh/blasten/turn.js@4/turn.min.js";
+  document.head.appendChild(turn);
+
+  let pdfjs = document.createElement("script");
+  pdfjs.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js";
+  document.head.appendChild(pdfjs);
+
+  pdfjs.onload = function() {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+
+    const pdfUrl = "https://online.ietlucknow.ac.in/pdf/How%20to%20Correct%20your%20institute%20name%20in%20ABC%20ID.pdf";
+
+    const renderPDF = async () => {
+      const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
+      const flipbook = $('#flipbook');
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale: 2 });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: context, viewport }).promise;
+
+        const dataURL = canvas.toDataURL();
+        const pageDiv = $('<div />').addClass('page').css({
+          width: viewport.width + 'px',
+          height: viewport.height + 'px',
+          'background-image': `url(${dataURL})`
+        });
+        flipbook.append(pageDiv);
+      }
+
+      $('#flipbook').turn({
+        width: '90%',
+        height: '100%',
+        autoCenter: true,
+        elevation: 50,
+        gradients: true
+      });
+    };
+
+    renderPDF();
+  };
+});
+</script>
+
+</body>
+</html>
